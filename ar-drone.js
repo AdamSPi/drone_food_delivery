@@ -1,10 +1,13 @@
 var arDrone = require('ar-drone');
-var client = arDrone.createClient();
-var control = arDrone.createUdpControl();
+
+var client = new arDrone.Client();
+var control = new arDrone.UdpControl();
 
 var pitch = 0;
 var roll = 0;
 var yaw = 0;
+
+var init_yaw = 0;
 var flying = false;
 
 client.config('general:navdata_demo', 'FALSE');
@@ -17,11 +20,11 @@ client.config('general:navdata_demo', 'FALSE');
 // positive yaw is cw
 client.on('navdata', function(navdata) {
     if(navdata.rawMeasures && navdata.demo && navdata.pwm){
-        if (!flying)
-            yaw = navdata.demo.rotation.yaw;
+        //if (!flying) init_yaw = navdata.demo.rotation.yaw;
         pitch = navdata.demo.rotation.pitch;
         roll = navdata.demo.rotation.roll;
-        flying = true;
+        //yaw = navdata.demo.rotation.yaw;
+        //flying = true;
     }
 });
 
@@ -33,8 +36,8 @@ async function repeat(action, duration) {
     var live = true;
     setTimeout(function () {
         live = false;
-        controller.pcmd();
-        controller.flush()
+        control.pcmd();
+        control.flush()
     }, duration);
 
     while (live) {
@@ -58,75 +61,157 @@ async function takeoff() {
             // This causes the actual udp message to be send (multiple commands are
             // combined into one message)
             control.flush();
+        }, 5000);
+    await stabilize(2000);
+}
+
+async function land() {
+    await repeat(
+        function() {
+            control.ref({fly: false, emergency: false});
+            control.pcmd();
+            control.flush();
         }, 3000);
-    await stabilize(1500);
 }
 
 function navdata_to_speed(val) {
     // (-2) pitch -> front(.5)
-    return val/(-4);
+    return val/(-2);
 };
 
-async function stabilize(duration, controller = control) {
+async function stabilize(duration) {
+    /*
+    while(1) {
+        if (yaw == init_yaw) break;
+        if (yaw < init_yaw) {
+            await repeat(
+                function() {
+                    control.pcmd({clockwise: .1});
+                    control.flush();
+                }, 500);
+        }
+        else if (yaw > init_yaw) {
+            await repeat(
+                function() {
+                    control.pcmd({counterclockwise: .1});
+                    control.flush();
+                }, 500);
+        }
+    }
+    */
     await repeat(
         function() {
             maneuver = { front: -navdata_to_speed(pitch),
                          left: -navdata_to_speed(roll) };
-            controller.pcmd(maneuver);
-            controller.flush();
+            control.pcmd(maneuver);
+            control.flush();
         }, duration);
 }
 
-async function move_forward(duration, controller = control){
+async function ascend(duration){
+    await repeat(
+        function() {
+            maneuver = { up: .2,
+                         left: -navdata_to_speed(roll),
+                         front: -navdata_to_speed(pitch) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, duration);
+}
+
+async function descend(duration){
+    await repeat(
+        function() {
+            maneuver = { up: -.2,
+                         left: -navdata_to_speed(roll),
+                         front: -navdata_to_speed(pitch) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, duration);
+}
+
+async function move_forward(duration){
     await repeat(
         function() {
             maneuver = { front: .5,
                          left: -navdata_to_speed(roll) };
-            controller.pcmd(maneuver);
-            controller.flush();
+            control.pcmd(maneuver);
+            control.flush();
         }, duration);
-    await stabilize(1500);
+    await repeat(
+        function() {
+            maneuver = { front: -.65,
+                         left: -navdata_to_speed(roll) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, 500);
 }
 
-async function move_backward(duration, controller = control){
+async function move_backward(duration){
     await repeat(
         function() {
             maneuver = { back: .5,
                          left: -navdata_to_speed(roll) };
-            controller.pcmd(maneuver);
-            controller.flush();
+            control.pcmd(maneuver);
+            control.flush();
         }, duration);
-    await stabilize(1500);
+    await repeat(
+        function() {
+            maneuver = { back: -.65,
+                         left: -navdata_to_speed(roll) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, 500);
 }
 
-async function move_left(duration, controller = control){
+async function move_left(duration){
     await repeat(
         function() {
             maneuver = { left: .5,
                          front: -navdata_to_speed(pitch) };
-            controller.pcmd(maneuver);
-            controller.flush();
+            control.pcmd(maneuver);
+            control.flush();
         }, duration);
-    await stabilize(1500);
+    await repeat(
+        function() {
+            maneuver = { left: -.65,
+                         front: -navdata_to_speed(pitch) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, 500);
 }
 
-async function move_right(duration, controller = control){
+async function move_right(duration){
     await repeat(
         function() {
             maneuver = { right: .5,
                          front: -navdata_to_speed(pitch) };
-            controller.pcmd(maneuver);
-            controller.flush();
+            control.pcmd(maneuver);
+            control.flush();
         }, duration);
-    await stabilize(1500);
+    await repeat(
+        function() {
+            maneuver = { right: -.65,
+                         front: -navdata_to_speed(pitch) };
+            control.pcmd(maneuver);
+            control.flush();
+        }, 500);
 }
 /* I know why everyone hates on js now */
 async function mission_engage() {
     await takeoff();
+    //await descend(500);
     await move_forward(2000);
-    await move_right(2000);
+    await stabilize(2000);
+    // await move_right(2000);
     await move_backward(2000);
-    await move_left(2000);
+    // await move_left(2000);
+    await stabilize(2000);
+    await land();
+}
+async function main() {
+    await mission_engage();
+    process.exit();
 }
 
-mission_engage();
+main();
