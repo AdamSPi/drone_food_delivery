@@ -120,7 +120,7 @@ async function move_right(duration, controller = control){
         }, duration);
     await stabilize(1500);
 }
-
+/* I know why everyone hates on js now */
 async function mission_engage() {
     await takeoff();
     await move_forward(2000);
