@@ -20,11 +20,11 @@ client.config('general:navdata_demo', 'FALSE');
 // positive yaw is cw
 client.on('navdata', function(navdata) {
     if(navdata.rawMeasures && navdata.demo && navdata.pwm){
-        //if (!flying) init_yaw = navdata.demo.rotation.yaw;
+        if (!flying) init_yaw = navdata.demo.rotation.yaw;
         pitch = navdata.demo.rotation.pitch;
         roll = navdata.demo.rotation.roll;
-        //yaw = navdata.demo.rotation.yaw;
-        //flying = true;
+        yaw = navdata.demo.rotation.yaw;
+        flying = true;
     }
 });
 
@@ -76,13 +76,12 @@ async function land() {
 
 function navdata_to_speed(val) {
     // (-2) pitch -> front(.5)
-    return val/(-2);
+    return val/(-3);
 };
 
 async function stabilize(duration) {
-    /*
     while(1) {
-        if (yaw == init_yaw) break;
+        if (((init_yaw-2) <= yaw) && (yaw <= (init_yaw+2))) break;
         if (yaw < init_yaw) {
             await repeat(
                 function() {
@@ -98,7 +97,6 @@ async function stabilize(duration) {
                 }, 500);
         }
     }
-    */
     await repeat(
         function() {
             maneuver = { front: -navdata_to_speed(pitch),
