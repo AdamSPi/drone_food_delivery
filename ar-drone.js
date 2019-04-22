@@ -41,8 +41,15 @@ mission.client().config('detect:detect_type', 12);
 mission.log("mission-" + df(new Date(), "yyyy-mm-dd_hh-MM-ss") + ".txt");
 
 mission.takeoff()
-       .go({x:0, y:0, z:1})
-       .hover(30000)
+       .go({x:0, y:0, z:1.5})
+       .forward(1)
+       .hover(500)
+       .left(1.5)
+       .hover(500)
+       .backward(1.5)
+       .hover(500)
+       .go({x:0, y:0})
+       .hover(500)
        .land();
 
 mission.run(function (err, result) {
