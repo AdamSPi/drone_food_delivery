@@ -40,14 +40,11 @@ mission.client().config('detect:detect_type', 12);
 
 // mission.log("mission-" + df(new Date(), "yyyy-mm-dd_hh-MM-ss") + ".txt");
 
-mission.client.ftrim();
-mission.zero()
-       .takeoff()
-       .hover(500)
-       .go({x:0, y:0, z:1.25})
-       .forward(.5)
-       .right(.5)
-       .hover(2000)
+mission.takeoff()
+       .altitude(.75)
+       .forward(1.8)
+       .hover(1000)
+       .backward(1.8)
        .land();
 
 mission.run(function (err, result) {
