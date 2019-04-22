@@ -38,12 +38,14 @@ mission.client().config('general:navdata_options', navdata_options);
 mission.client().config('video:video_channel', 1);
 mission.client().config('detect:detect_type', 12);
 
-mission.log("mission-" + df(new Date(), "yyyy-mm-dd_hh-MM-ss") + ".txt");
-mission.client().ftrim();
-mission.takeoff()
+// mission.log("mission-" + df(new Date(), "yyyy-mm-dd_hh-MM-ss") + ".txt");
+
+mission.client.ftrim();
+mission.zero()
+       .takeoff()
+       .hover(500)
        .go({x:0, y:0, z:1.25})
        .forward(.5)
-       .cw(90)
        .right(.5)
        .hover(2000)
        .land();
