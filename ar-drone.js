@@ -39,17 +39,13 @@ mission.client().config('video:video_channel', 1);
 mission.client().config('detect:detect_type', 12);
 
 mission.log("mission-" + df(new Date(), "yyyy-mm-dd_hh-MM-ss") + ".txt");
-
+mission.client().ftrim();
 mission.takeoff()
-       .go({x:0, y:0, z:1.5})
-       .forward(1)
-       .hover(500)
-       .left(1.5)
-       .hover(500)
-       .backward(1.5)
-       .hover(500)
-       .go({x:0, y:0})
-       .hover(500)
+       .go({x:0, y:0, z:1.25})
+       .forward(.5)
+       .cw(90)
+       .right(.5)
+       .hover(2000)
        .land();
 
 mission.run(function (err, result) {
