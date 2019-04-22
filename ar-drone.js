@@ -1,15 +1,22 @@
 var arDrone = require('ar-drone');
 
-var client = new arDrone.Client();
+var client = arDrone.createClient();
 var control = new arDrone.UdpControl();
 
 var pitch = 0;
 var roll = 0;
 var yaw = 0;
 
+var xVel = 0;
+var yVel = 0;
+var zVel = 0;
+
+var init_pitch = 0;
+var init_roll = 0;
 var init_yaw = 0;
 var flying = false;
 
+client.ftrim();
 client.config('general:navdata_demo', 'FALSE');
 
 // negative pitch is forward
@@ -20,13 +27,33 @@ client.config('general:navdata_demo', 'FALSE');
 // positive yaw is cw
 client.on('navdata', function(navdata) {
     if(navdata.rawMeasures && navdata.demo && navdata.pwm){
-        if (!flying) init_yaw = navdata.demo.rotation.yaw;
-        pitch = navdata.demo.rotation.pitch;
-        roll = navdata.demo.rotation.roll;
-        yaw = navdata.demo.rotation.yaw;
+        if (!flying) {
+            console.log("Battery at " + navdata.demo.batteryPercentage + "%\n");
+            init_pitch = navdata.demo.rotation.pitch;
+            init_roll = navdata.demo.rotation.roll;
+            init_yaw = navdata.demo.rotation.yaw;
+        }
+        pitch = -init_pitch + navdata.demo.rotation.pitch;
+        roll = -init_roll + navdata.demo.rotation.roll;
+        yaw = -init_yaw + navdata.demo.rotation.yaw;
         flying = true;
+        console.log("Received navdata from drone.\n");
+        console.log("Pitch: " + pitch + 
+        			"\nRoll: " + roll + 
+                    "\nYaw: " + yaw +
+                    "\n\nx velocity: " + navdata.demo.xVelocity + 
+                    "\ny velocity: " + navdata.demo.yVelocity +
+                    "\nz velocity: " + navdata.demo.zVelocity + "\n");
     }
 });
+
+function send_packet(maneuver = {}) {
+    // This command makes sure your drone hovers in place and does not drift.
+    control.pcmd(maneuver);
+    // This causes the actual udp message to be send (multiple commands are
+    // combined into one message)
+    control.flush();
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -36,8 +63,6 @@ async function repeat(action, duration) {
     var live = true;
     setTimeout(function () {
         live = false;
-        control.pcmd();
-        control.flush()
     }, duration);
 
     while (live) {
@@ -48,6 +73,7 @@ async function repeat(action, duration) {
 
 // Take off
 async function takeoff() {
+	console.log("Taking off...\n");
     await repeat(
         function() {
             // The emergency: true option recovers your drone from emergency mode that can
@@ -56,155 +82,141 @@ async function takeoff() {
             // second in the beginning, otherwise your drone may attempt to takeoff again
             // after a crash.
             control.ref({fly: true, emergency: true});
-            // This command makes sure your drone hovers in place and does not drift.
-            control.pcmd();
-            // This causes the actual udp message to be send (multiple commands are
-            // combined into one message)
-            control.flush();
-        }, 5000);
-    await stabilize(2000);
+            send_packet();
+        }, 2000);
+    await stabilize(3000);
 }
 
 async function land() {
+	console.log("Landing...\n");
     await repeat(
         function() {
             control.ref({fly: false, emergency: false});
-            control.pcmd();
-            control.flush();
+            send_packet();
         }, 3000);
 }
 
 function navdata_to_speed(val) {
-    // (-2) pitch -> front(.5)
-    return val/(-3);
+    return val/(-20);
 };
 
 async function stabilize(duration) {
-    while(1) {
-        if (((init_yaw-2) <= yaw) && (yaw <= (init_yaw+2))) break;
-        if (yaw < init_yaw) {
-            await repeat(
-                function() {
-                    control.pcmd({clockwise: .1});
-                    control.flush();
-                }, 500);
-        }
-        else if (yaw > init_yaw) {
-            await repeat(
-                function() {
-                    control.pcmd({counterclockwise: .1});
-                    control.flush();
-                }, 500);
-        }
-    }
+    console.log("Stabilizing...\n");
     await repeat(
         function() {
-            maneuver = { front: -navdata_to_speed(pitch),
-                         left: -navdata_to_speed(roll) };
-            control.pcmd(maneuver);
-            control.flush();
-        }, duration);
-}
-
-async function ascend(duration){
-    await repeat(
-        function() {
-            maneuver = { up: .2,
-                         left: -navdata_to_speed(roll),
-                         front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
-        }, duration);
-}
-
-async function descend(duration){
-    await repeat(
-        function() {
-            maneuver = { up: -.2,
-                         left: -navdata_to_speed(roll),
-                         front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
+            var xMod = 0;
+            var yMod = 0;
+            if (-50 > xVel || xVel > 50) {
+                if (xVel > 50) {
+                    xMod = -1;
+                } else {
+                    xMod = 1;
+                }
+            }
+            if (-50 > yVel || yVel > 50) {
+                if (yVel > 50) {
+                    yMod = -1;
+                } else {
+                    yMod = 1;
+                }
+            }
+            maneuver = { front: yMod + -navdata_to_speed(pitch),
+                         left: xMod + -navdata_to_speed(roll) };
+            console.log("Sending packet:\n\tfront: " + -navdata_to_speed(pitch) +
+            			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
         }, duration);
 }
 
 async function move_forward(duration){
+	console.log("Going forward...\n");
     await repeat(
         function() {
             maneuver = { front: .5,
                          left: -navdata_to_speed(roll) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tfront: .5" +
+            			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
         }, duration);
     await repeat(
         function() {
             maneuver = { front: -.65,
                          left: -navdata_to_speed(roll) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tfront: -.65" +
+            			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
         }, 500);
 }
 
 async function move_backward(duration){
+	console.log("Going backward...\n");
     await repeat(
         function() {
             maneuver = { back: .5,
                          left: -navdata_to_speed(roll) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tback: .5" +
+            			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
         }, duration);
     await repeat(
         function() {
             maneuver = { back: -.65,
                          left: -navdata_to_speed(roll) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tback: -.65" +
+            			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
         }, 500);
 }
 
 async function move_left(duration){
+	console.log("Going left...\n");
     await repeat(
         function() {
             maneuver = { left: .5,
                          front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tleft: .5" +
+            			"\n\tfront: " + -navdata_to_speed(pitch));
+            send_packet(maneuver);
         }, duration);
     await repeat(
         function() {
             maneuver = { left: -.65,
                          front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tleft: -.65" +
+            			"\n\tfront: " + -navdata_to_speed(pitch));
+            send_packet(maneuver);
         }, 500);
 }
 
 async function move_right(duration){
+	console.log("Going right...\n");
     await repeat(
         function() {
             maneuver = { right: .5,
                          front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tright: .5" +
+            			"\n\tfront: " + -navdata_to_speed(pitch));
+            send_packet(maneuver);
         }, duration);
     await repeat(
         function() {
             maneuver = { right: -.65,
                          front: -navdata_to_speed(pitch) };
-            control.pcmd(maneuver);
-            control.flush();
+            console.log("Sending packet:\n\tright: -.65" +
+            			"\n\tfront: " + -navdata_to_speed(pitch));
+            send_packet(maneuver);
         }, 500);
 }
 /* I know why everyone hates on js now */
 async function mission_engage() {
     await takeoff();
     //await descend(500);
-    await move_forward(2000);
-    await stabilize(2000);
+    //await move_forward(1000);
+    await stabilize(10000);
     // await move_right(2000);
-    await move_backward(2000);
+    //await mov_backward(1000);
     // await move_left(2000);
-    await stabilize(2000);
+    //await stabilize(2000);
     await land();
 }
 async function main() {
