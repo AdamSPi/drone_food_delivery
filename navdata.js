@@ -84,7 +84,6 @@ async function takeoff() {
             control.ref({fly: true, emergency: true});
             send_packet();
         }, 2000);
-    await stabilize(3000);
 }
 
 async function land() {
@@ -94,6 +93,15 @@ async function land() {
             control.ref({fly: false, emergency: false});
             send_packet();
         }, 3000);
+}
+
+
+async function hover(duration) {
+    console.log("Hovering...\n");
+    await repeat(
+        function() {
+            send_packet();
+        }, duration);
 }
 
 function navdata_to_speed(val) {
@@ -182,10 +190,13 @@ async function move_right(duration){
 /* I know why everyone hates on js now */
 async function mission_engage() {
     await takeoff();
+    await hover(2000);
     //await descend(500);
-    await move_forward(500);
+    await move_forward(100);
+    await hover(1000);
     // await move_right(2000);
-    await mov_backward(500);
+    await move_backward(1000);
+    await hover(1000);
     // await move_left(2000);
     //await stabilize(2000);
     await land();
