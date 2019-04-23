@@ -100,6 +100,14 @@ process.on('SIGINT', function() {
     process.exit(0);
 });
 
+async function descend(duration) {
+    await repeat(
+        function() {
+            maneuver = { down: .2}
+            send_packet(maneuver);
+    }, duration);
+}
+
 function navdata_to_speed(val) {
     return val/(-20);
 };
@@ -108,7 +116,9 @@ async function hover(duration) {
     console.log("Hovering...\n");
     await repeat(
         function() {
-            send_packet();
+            maneuver = { /* front: -navdata_to_speed(pitch),
+                            left: -navdata_to_speed(roll) */ };
+            send_packet(maneuver);
         }, duration);
 }
 
@@ -128,6 +138,16 @@ async function move_forward(duration){
                          left: -navdata_to_speed(roll) };
             console.log("Sending packet:\n\tfront: -.65" +
             			"\n\tleft: " + -navdata_to_speed(roll));
+            send_packet(maneuver);
+        }, 700);
+    await repeat(
+        function() {
+            maneuver = { left: .65};
+            send_packet(maneuver);
+        }, 500);
+    await repeat(
+        function() {
+            maneuver = { left: -.65};
             send_packet(maneuver);
         }, 500);
 }
@@ -149,6 +169,16 @@ async function move_backward(duration){
             console.log("Sending packet:\n\tback: -.65" +
             			"\n\tleft: " + -navdata_to_speed(roll));
             send_packet(maneuver);
+        }, 700);
+    await repeat(
+        function() {
+            maneuver = { left: .65};
+            send_packet(maneuver);
+        }, 500);
+    await repeat(
+        function() {
+            maneuver = { left: -.65};
+            send_packet(maneuver);
         }, 500);
 }
 
@@ -168,6 +198,16 @@ async function move_left(duration){
                          front: -navdata_to_speed(pitch) };
             console.log("Sending packet:\n\tleft: -.65" +
             			"\n\tfront: " + -navdata_to_speed(pitch));
+            send_packet(maneuver);
+        }, 700);
+    await repeat(
+        function() {
+            maneuver = { front: .65};
+            send_packet(maneuver);
+        }, 500);
+    await repeat(
+        function() {
+            maneuver = { front: -.65};
             send_packet(maneuver);
         }, 500);
 }
@@ -189,18 +229,29 @@ async function move_right(duration){
             console.log("Sending packet:\n\tright: -.65" +
             			"\n\tfront: " + -navdata_to_speed(pitch));
             send_packet(maneuver);
+        }, 700);
+    await repeat(
+        function() {
+            maneuver = { front: .65};
+            send_packet(maneuver);
+        }, 500);
+    await repeat(
+        function() {
+            maneuver = { front: -.65};
+            send_packet(maneuver);
         }, 500);
 }
-/* I know why everyone hates on js now */
+
+/* Table A: go forward and back */
 async function mission_engage() {
     await takeoff();
-    // await descend(500);
+    await descend(700);
     await hover(500);
     await move_forward(1400);
     await hover(1000);
     // await move_right(2000);
     await move_backward(1400);
-    await hover(1000);
+    await hover(500);
     // await move_left(2000);
     // await stabilize(2000);
     await land();
