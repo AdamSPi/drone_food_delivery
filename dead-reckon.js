@@ -40,10 +40,7 @@ client.on('navdata', function(navdata) {
         console.log("Received navdata from drone.\n");
         console.log("Pitch: " + pitch + 
         			"\nRoll: " + roll + 
-                    "\nYaw: " + yaw +
-                    "\n\nx velocity: " + navdata.demo.xVelocity + 
-                    "\ny velocity: " + navdata.demo.yVelocity +
-                    "\nz velocity: " + navdata.demo.zVelocity + "\n");
+                    "\nYaw: " + yaw + "\n");
     }
 });
 
@@ -96,18 +93,11 @@ async function land() {
         }, 3000);
 }
 
-var exiting = false;
 process.on('SIGINT', function() {
-    if (exiting) {
-        process.exit(0);
-    } else {
-        console.log('Got SIGINT. Landing, press Control-C again to force exit.');
-        exiting = true;
-        mission.control().disable();
-        mission.client().land(function() {
-            process.exit(0);
-        });
-    }
+    console.log('Landing...');
+    client.stop();
+    client.land();
+    process.exit(0);
 });
 
 function navdata_to_speed(val) {
@@ -204,14 +194,15 @@ async function move_right(duration){
 /* I know why everyone hates on js now */
 async function mission_engage() {
     await takeoff();
-    //await descend(500);
-    await move_forward(1500);
+    // await descend(500);
+    await hover(500);
+    await move_forward(1400);
     await hover(1000);
     // await move_right(2000);
-    await move_backward(1500);
+    await move_backward(1400);
     await hover(1000);
     // await move_left(2000);
-    //await stabilize(2000);
+    // await stabilize(2000);
     await land();
 }
 async function main() {
