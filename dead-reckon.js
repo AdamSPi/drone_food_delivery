@@ -115,7 +115,7 @@ function navdata_to_speed(val) {
 };
 
 async function hover(duration) {
-    console.log("Stabilizing...\n");
+    console.log("Hovering...\n");
     await repeat(
         function() {
             send_packet();
@@ -205,9 +205,11 @@ async function move_right(duration){
 async function mission_engage() {
     await takeoff();
     //await descend(500);
-    //await move_forward(1000);
+    await move_forward(1500);
+    await hover(1000);
     // await move_right(2000);
-    //await mov_backward(1000);
+    await move_backward(1500);
+    await hover(1000);
     // await move_left(2000);
     //await stabilize(2000);
     await land();
