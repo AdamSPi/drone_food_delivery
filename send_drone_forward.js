@@ -122,7 +122,7 @@ async function hover(duration) {
         }, duration);
 }
 
-async function move_forward(duration){
+async function move_forward(duration) {
 	console.log("Going forward...\n");
     await repeat(
         function() {
@@ -140,19 +140,9 @@ async function move_forward(duration){
             			"\n\tleft: " + -navdata_to_speed(roll));
             send_packet(maneuver);
         }, 700);
-    await repeat(
-        function() {
-            maneuver = { left: .65};
-            send_packet(maneuver);
-        }, 500);
-    await repeat(
-        function() {
-            maneuver = { left: -.65};
-            send_packet(maneuver);
-        }, 500);
 }
 
-async function move_backward(duration){
+async function move_backward(duration) {
 	console.log("Going backward...\n");
     await repeat(
         function() {
@@ -170,19 +160,9 @@ async function move_backward(duration){
             			"\n\tleft: " + -navdata_to_speed(roll));
             send_packet(maneuver);
         }, 700);
-    await repeat(
-        function() {
-            maneuver = { left: .65};
-            send_packet(maneuver);
-        }, 500);
-    await repeat(
-        function() {
-            maneuver = { left: -.65};
-            send_packet(maneuver);
-        }, 500);
 }
 
-async function move_left(duration){
+async function move_left(duration) {
 	console.log("Going left...\n");
     await repeat(
         function() {
@@ -200,19 +180,9 @@ async function move_left(duration){
             			"\n\tfront: " + -navdata_to_speed(pitch));
             send_packet(maneuver);
         }, 700);
-    await repeat(
-        function() {
-            maneuver = { front: .65};
-            send_packet(maneuver);
-        }, 500);
-    await repeat(
-        function() {
-            maneuver = { front: -.65};
-            send_packet(maneuver);
-        }, 500);
 }
 
-async function move_right(duration){
+async function move_right(duration) {
 	console.log("Going right...\n");
     await repeat(
         function() {
@@ -230,30 +200,19 @@ async function move_right(duration){
             			"\n\tfront: " + -navdata_to_speed(pitch));
             send_packet(maneuver);
         }, 700);
-    await repeat(
-        function() {
-            maneuver = { front: .65};
-            send_packet(maneuver);
-        }, 500);
-    await repeat(
-        function() {
-            maneuver = { front: -.65};
-            send_packet(maneuver);
-        }, 500);
 }
 
 /* Table A: go forward and back */
 async function mission_engage() {
     await takeoff();
+    /*
     await descend(700);
     await hover(500);
     await move_forward(1400);
     await hover(1000);
-    // await move_right(2000);
     await move_backward(1400);
-    await hover(500);
-    // await move_left(2000);
-    // await stabilize(2000);
+    */
+    await hover(30000);
     await land();
 }
 async function main() {
