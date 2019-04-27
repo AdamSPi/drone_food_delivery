@@ -212,7 +212,7 @@ async function mission_engage() {
     await hover(1000);
     await move_backward(1400);
     */
-    await hover(30000);
+    await hover(10000);
     await land();
 }
 async function main() {
