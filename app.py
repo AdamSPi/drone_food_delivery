@@ -23,7 +23,10 @@ STATUSOFF = ['stop','land']
 @ask.intent('DroneIntent', mapping = {'status':'status'})
 def DroneIntent(status, room):
 	if status in STATUSON:
-		subprocess.Popen(['node', 'send_drone_forward.js'])
+		# make a request to http://192.168.1.3:5000/start to start roomba
+		requests.get('http://192.168.1.3:5000/start')
+		# start node program to hover drone over tag
+		subprocess.Popen(['node', 'hover_over_tag.js'])
 		return statement('{}ing drone.'.format(status))
 	elif status in STATUSOFF:
 		print('Landing drone...')
