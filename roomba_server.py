@@ -10,3 +10,6 @@ def start():
     subprocess.Popen(['python', 'roomba_control.js'])
     print('Got start request from raspberrypi')
     return "Success"
+
+if __name__ == '__main__':
+    app.run(debug=True)
