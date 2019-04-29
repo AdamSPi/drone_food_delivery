@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.route('/')
 def start():
     # Raspberry pi told us to start
-    subprocess.Popen(['python', 'roomba_control.js'])
+    subprocess.Popen(['python', 'roomba_control.py'])
     print('Got start request from raspberrypi')
     return "Success"
 

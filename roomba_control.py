@@ -57,7 +57,7 @@ if __name__ == "__main__":
 	bot.safe()
 	# directly set the motor speeds ... easier if using a joystick
 	bot.drive_direct(200, -200)
-	time.sleep(2)
+	time.sleep(7)
 	drive_distance(0.5, 100)
 	# turn an angle [degrees] at a speed: 90 deg, 100 mm/sec
 	bot.turn_angle(90, 100)
