@@ -79,7 +79,7 @@ async function takeoff() {
             // In a real program you probably only want to send emergency: true for one
             // second in the beginning, otherwise your drone may attempt to takeoff again
             // after a crash.
-            control.ref({fly: true, emergency: false});
+            control.ref({fly: true, emergency: true});
             send_packet();
         }, 2000);
     await hover(3000);
