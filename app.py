@@ -26,7 +26,7 @@ def DroneIntent(status, room):
 		# make a request to http://192.168.1.3:5000/start to start roomba
 		# requests.get('http://192.168.1.3:5000/start')
 		# start node program to hover drone over tag
-		subprocess.Popen(['node', 'hover_over_tag.js'])
+		subprocess.Popen(['node', 'manual_drone_hover.js'])
 		return statement('{}ing drone.'.format(status))
 	elif status in STATUSOFF:
 		print('Landing drone...')
