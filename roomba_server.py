@@ -4,7 +4,7 @@ import requests
 
 app = Flask(__name__)
 
-@app.route('/start')
+@app.route('/')
 def start():
     # Raspberry pi told us to start
     subprocess.Popen(['python', 'roomba_control.js'])
@@ -12,4 +12,4 @@ def start():
     return "Success"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="localhost", port=8000, debug=True)
