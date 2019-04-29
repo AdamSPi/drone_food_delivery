@@ -17,7 +17,7 @@ app = Flask(__name__)
 ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
-STATUSON = ['fly','deploy']
+STATUSON = ['fly','deploy', 'takeoff']
 STATUSOFF = ['stop','land']
 
 @ask.intent('DroneIntent', mapping = {'status':'status'})

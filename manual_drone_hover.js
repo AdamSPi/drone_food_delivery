@@ -1,6 +1,7 @@
 var arDrone = require('ar-drone');
 
 var client = arDrone.createClient();
+client.disableEmergency();
 var control = new arDrone.UdpControl();
 
 var pitch = 0;
@@ -17,7 +18,6 @@ var init_yaw = 0;
 var flying = false;
 
 client.ftrim();
-client.config('general:navdata_demo', 'FALSE');
 
 // negative pitch is forward
 // positive pitch is backward
