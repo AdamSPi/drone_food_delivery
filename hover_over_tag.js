@@ -43,7 +43,7 @@ mission.client().disableEmergency();
 mission.client().ftrim()
 mission.takeoff()
        .altitude(.75)
-       .hover(30000)
+       .hover(45000)
        .land();
 
 mission.run(function (err, result) {

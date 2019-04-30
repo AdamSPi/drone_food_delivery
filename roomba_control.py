@@ -55,24 +55,16 @@ if __name__ == "__main__":
 	# Put the Create2 into 'safe' mode so we can drive it
 	# This will still provide some protection
 	bot.safe()
-	# directly set the motor speeds ... easier if using a joystick
-	bot.drive_direct(200, -200)
-	time.sleep(7)
-	drive_distance(0.5, 100)
+	bot.drive_distance(1.8, 200)
 	# turn an angle [degrees] at a speed: 90 deg, 100 mm/sec
-	bot.turn_angle(90, 100)
+	bot.turn_angle(-90, 200)
 	# drive straight for a distance: 5 meters, reverse 100 mm/sec
-	drive_distance(2.5, 100)
-	time.sleep(2)
-	drive_distance(2.5, -100)
-	time.sleep(1)
+	bot.drive_distance(2.5, 200)
+	bot.drive_distance(2.5, -200)
 	bot.turn_angle(-90, 100)
-	time.sleep(1)
-	drive_distance(0.5, 100)
-	time.sleep(1)
+	bot.drive_distance(1.8, 100)
 	# Tell the Create2 to drive straight backward at a speed of 100 mm/s
-	bot.turn_angle(180, 100)
-	time.sleep(2)
+	#bot.turn_angle(180, 200)
 	# Stop the bot
 	bot.drive_stop()
 	# Close the connection
